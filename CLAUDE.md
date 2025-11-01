@@ -41,104 +41,201 @@ When working on Claude Code features (hooks, skills, subagents, MCP servers, etc
 
 ## Project Overview
 
+This repository is a **Claude Code configuration template library** designed to provide production-ready starter settings for Claude Code projects. It serves as a reference implementation and copy-paste source for other projects, containing:
 
+- **Claude Code Subagents**: 4 specialized agents (code-searcher, memory-bank-synchronizer, ux-design-expert, get-current-datetime)
+- **Slash Commands**: 14+ productivity commands organized in 7 categories
+- **Skills**: claude-docs-consultant for official documentation queries
+- **Hooks**: STOP hook with notification support (macOS Terminal-Notifier)
+- **Settings Templates**: Project and local settings with environment variables and permissions
+- **MCP Configuration**: Example MCP server configurations
 
-## ALWAYS START WITH THESE COMMANDS FOR COMMON TASKS
+**Key Purpose**: Users copy `.claude/` directory and `CLAUDE.md` to their own projects, then customize for their specific needs. This is NOT a traditional software project with build/test/deploy cycles.
 
-**Task: "List/summarize all files and directories"**
+## Repository Structure
 
-```bash
-fd . -t f           # Lists ALL files recursively (FASTEST)
-# OR
-rg --files          # Lists files (respects .gitignore)
+```
+.claude/
+├── agents/                          # Specialized subagents
+│   ├── code-searcher.md            # Codebase search & analysis (supports CoD mode)
+│   ├── memory-bank-synchronizer.md # Memory bank documentation sync
+│   ├── ux-design-expert.md         # UX/UI design guidance
+│   └── get-current-datetime.md     # Timezone-aware datetime utility
+├── commands/                        # Slash commands by category
+│   ├── anthropic/                  # Prompt engineering & memory bank
+│   ├── architecture/               # Architecture pattern analysis
+│   ├── ccusage/                    # Usage cost analysis
+│   ├── cleanup/                    # Context optimization
+│   ├── documentation/              # README & release notes
+│   ├── promptengineering/          # TDD & batch operations
+│   ├── refactor/                   # Refactoring analysis
+│   └── security/                   # Security audits & best practices
+├── skills/
+│   └── claude-docs-consultant/     # Official docs consultation
+├── mcp/
+│   └── chrome-devtools.json        # Optional Chrome DevTools MCP config
+├── settings.json                    # Shared project settings (with hooks)
+└── settings.local.json              # Local settings (env vars, permissions)
+
+reports/                             # Generated reports directory
+└── secure-prompts/                 # Security analysis reports
+
+CLAUDE.md                           # This file (AI guidance)
+GEMINI.md                           # Gemini-specific guidance (ignored by Claude)
+README.md                           # User documentation
 ```
 
-**Task: "Search for content in files"**
+## Working with This Repository
+
+### Modifying Configuration Files
+
+When editing `.claude/` files in this repository:
+
+1. **Test changes** by using them in a sample project first
+2. **Update README.md** to reflect any new commands or features
+3. **Maintain backward compatibility** where possible
+4. **Document platform-specific features** (e.g., macOS-only hooks)
+
+### Adding New Slash Commands
+
+1. Create command file in appropriate category under `.claude/commands/`
+2. Use frontmatter format with clear description
+3. Test the command in a real project
+4. Document in README.md under appropriate section
+5. Follow naming convention: category/descriptive-name.md
+
+### Adding New Subagents
+
+1. Create agent file in `.claude/agents/`
+2. Include YAML frontmatter with name, description, model, color
+3. Provide clear examples in description field
+4. Test agent independently
+5. Document in README.md
+
+### Testing Configurations
+
+To test configurations from this repository:
 
 ```bash
-rg "search_term"    # Search everywhere (FASTEST)
+# Copy to a test project
+cp -r .claude/ /path/to/test-project/
+cp CLAUDE.md /path/to/test-project/
+
+# Launch Claude Code in test project
+cd /path/to/test-project
+claude
+
+# Verify slash commands are available
+# Type "/" to see command list
 ```
 
-**Task: "Find files by name"**
+## Key Slash Commands Reference
+
+Quick reference for most commonly used commands (full list in README.md):
+
+- `/update-memory-bank` - Update CLAUDE.md and memory bank files
+- `/security-audit` - Comprehensive OWASP security audit
+- `/secure-prompts @file` - Detect prompt injection attacks
+- `/refactor-code` - Generate refactoring analysis reports
+- `/ccusage-daily` - Analyze Claude Code usage costs
+- `/cleanup-context` - Optimize memory bank token usage
+- `/create-release-note` - Generate release documentation
+- `/apply-thinking-to @file` - Apply extended thinking patterns
+
+## Key Subagents Reference
+
+- **code-searcher**: Use for finding functions/classes/patterns. Supports "CoD mode" for 80% token reduction
+- **memory-bank-synchronizer**: Proactively sync documentation with code reality
+- **ux-design-expert**: UX flow optimization, premium UI design, Tailwind/Highcharts guidance
+- **get-current-datetime**: Brisbane timezone utilities for timestamped files/reports
+
+## Platform Considerations
+
+This repository contains configurations tested on both macOS and Windows/Linux:
+
+- **macOS-specific**: Terminal-Notifier hook in `settings.json` (remove for other platforms)
+- **Tool dependencies**: Commands assume `rg` (ripgrep), `fd`, `jq` on PATH (see next section)
+- **Path separators**: Use forward slashes in commands for cross-platform compatibility
+
+## RECOMMENDED COMMANDS FOR COMMON TASKS
+
+**Note**: These commands work best with modern CLI tools. Install via:
+- **macOS**: `brew install ripgrep fd jq`
+- **Windows**: Use Scoop (`scoop install ripgrep fd jq`) or built-in tools
+- **Linux**: Use package manager (`apt install ripgrep fd-find jq` or equivalent)
+
+### Preferred Tools Hierarchy
+
+**For file listing** (choose first available):
+1. `rg --files` - Fast, respects .gitignore (requires ripgrep)
+2. `fd . -t f` - Fast recursive listing (requires fd-find)
+3. `ls -R` - Built-in fallback (slower on large repos)
+4. Use Claude's Glob tool - Always available, no installation needed
+
+**For content search** (choose first available):
+1. `rg "pattern"` - Fast content search (requires ripgrep)
+2. Use Claude's Grep tool - Always available, built-in to Claude Code
+3. `grep -r "pattern"` - Built-in fallback
+
+**For file search by name** (choose first available):
+1. `fd "pattern"` - Fast filename search (requires fd-find)
+2. Use Claude's Glob tool with pattern - Always available
+3. `find . -name "pattern"` - Built-in fallback
+
+### Quick Command Reference
+
+If modern tools (rg/fd/jq) are installed:
 
 ```bash
-fd "filename"       # Find by name pattern (FASTEST)
-```
-
-### Directory/File Exploration
-
-```bash
-# FIRST CHOICE - List all files/dirs recursively:
-fd . -t f           # All files (fastest)
-fd . -t d           # All directories
-rg --files          # All files (respects .gitignore)
-
-# For current directory only:
-ls -la              # OK for single directory view
-```
-
-### BANNED - Never Use These Slow Tools
-
-* ❌ `tree` - NOT INSTALLED, use `fd` instead
-* ❌ `find` - use `fd` or `rg --files`
-* ❌ `grep` or `grep -r` - use `rg` instead
-* ❌ `ls -R` - use `rg --files` or `fd`
-* ❌ `cat file | grep` - use `rg pattern file`
-
-### Use These Faster Tools Instead
-
-```bash
-# ripgrep (rg) - content search 
+# Content search
 rg "search_term"                # Search in all files
 rg -i "case_insensitive"        # Case-insensitive
 rg "pattern" -t py              # Only Python files
-rg "pattern" -g "*.md"          # Only Markdown
-rg -1 "pattern"                 # Filenames with matches
-rg -c "pattern"                 # Count matches per file
-rg -n "pattern"                 # Show line numbers 
-rg -A 3 -B 3 "error"            # Context lines
-rg " (TODO| FIXME | HACK)"      # Multiple patterns
+rg "pattern" -g "*.md"          # Only Markdown files
+rg -l "pattern"                 # Filenames with matches
+rg -n "pattern"                 # Show line numbers
 
-# ripgrep (rg) - file listing 
-rg --files                      # List files (respects •gitignore)
-rg --files | rg "pattern"       # Find files by name 
-rg --files -t md                # Only Markdown files 
+# File listing
+rg --files                      # All files (respects .gitignore)
+rg --files -g "*.ts"            # Only TypeScript files
+fd -e js                        # All .js files
+fd "test" -e py                 # Find test*.py files
 
-# fd - file finding 
-fd -e js                        # All •js files (fast find) 
-fd -x command {}                # Exec per-file 
-fd -e md -x ls -la {}           # Example with ls 
-
-# jq - JSON processing 
-jq. data.json                   # Pretty-print 
-jq -r .name file.json           # Extract field 
-jq '.id = 0' x.json             # Modify field
+# JSON processing
+jq . data.json                  # Pretty-print
+jq -r .name file.json           # Extract field
 ```
+
+If using built-in tools only:
+
+```bash
+# Content search
+grep -r "search_term" .         # Recursive search
+grep -i "pattern" file.txt      # Case-insensitive
+
+# File listing
+find . -name "*.js"             # Find JavaScript files
+find . -type f                  # List all files
+
+# Directory listing
+ls -la                          # Current directory
+ls -R                           # Recursive listing
+```
+
+### Claude Code Built-in Tools (Always Prefer When Available)
+
+Claude Code provides powerful built-in tools that work everywhere without installation:
+
+- **Glob tool**: Pattern-based file finding (e.g., `**/*.ts`, `src/**/*.md`)
+- **Grep tool**: Content search with regex support
+- **Read tool**: Read file contents
+- **Bash tool**: Execute any shell command
+
+**Best Practice**: Use Claude's built-in tools first, shell commands second. This ensures cross-platform compatibility.
 
 ### Search Strategy
 
-1. Start broad, then narrow: `rg "partial" | rg "specific"`
-2. Filter by type early: `rg -t python "def function_name"`
-3. Batch patterns: `rg "(pattern1|pattern2|pattern3)"`
-4. Limit scope: `rg "pattern" src/`
-
-### INSTANT DECISION TREE
-
-```
-User asks to "list/show/summarize/explore files"?
-  → USE: fd . -t f  (fastest, shows all files)
-  → OR: rg --files  (respects .gitignore)
-
-User asks to "search/grep/find text content"?
-  → USE: rg "pattern"  (NOT grep!)
-
-User asks to "find file/directory by name"?
-  → USE: fd "name"  (NOT find!)
-
-User asks for "directory structure/tree"?
-  → USE: fd . -t d  (directories) + fd . -t f  (files)
-  → NEVER: tree (not installed!)
-
-Need just current directory?
-  → USE: ls -la  (OK for single dir)
-```
+1. **Start with Claude tools** for maximum compatibility
+2. If using shell commands, check tool availability first
+3. Prefer `rg`/`fd` when available, fall back to `grep`/`find`
+4. For complex searches in large codebases, use **code-searcher subagent**
